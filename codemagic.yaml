@@ -1,0 +1,49 @@
+# Check out https://docs.codemagic.io/getting-started/yaml/for more information
+
+workflows:
+    native-android:
+        name: Native Android
+        max_build_duration: 60
+        instance_type: mac_mini
+        environment:
+            node: v16.11.1
+            xcode: latest
+        triggering:
+            events:
+                - push
+            branch_patterns:
+                - pattern: master
+                  include: true
+                  source: true
+        scripts:
+            - name: Set Android SDK location
+              script: |
+                echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/local.properties"
+            - name: Set up keystore
+              script: |
+                    echo $CM_KEYSTORE | base64 --decode > /tmp/keystore.keystore
+                    # The following script creates key.properties file and stores the credentials in it. As we configure code signing in app/build.gradle file, the following part is unnecessary unless code signing is configured differently as explained in the documentation: https://docs.codemagic.io/flutter-code-signing/android-code-signing/
+                    # cat >> "$CM_BUILD_DIR/key.properties" <<EOF
+                    # storePassword=$CM_KEYSTORE_PASSWORD
+                    # keyPassword=$CM_KEY_ALIAS_PASSWORD
+                    # keyAlias=$CM_KEY_ALIAS_USERNAME
+                    # storeFile=/tmp/keystore.keystore
+                    # EOF
+            - name: Build Android debug APK
+              script: |
+                ./gradlew assembleDebug
+            - name: Build Android test APK
+              script: |
+                ./gradlew assembleAndroidTest
+            - name: Build Android production release
+              script: |
+                ./gradlew assembleRelease    
+        artifacts:
+            - app/build/outputs/**/*.apk
+        publishing:
+            email:
+                recipients:
+                    - santanumukherjee@matrixnmedia.com
+                notify:
+                  success: true
+                  failure: false
