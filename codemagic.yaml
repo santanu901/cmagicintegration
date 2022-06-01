@@ -12,7 +12,7 @@ workflows:
             events:
                 - push
             branch_patterns:
-                - pattern: master
+                - pattern: "master"
                   include: true
                   source: true
         scripts:
@@ -32,9 +32,9 @@ workflows:
             - name: Build Android debug APK
               script: |
                 ./gradlew assembleDebug
-            - name: Build Android test APK
-              script: |
-                ./gradlew assembleAndroidTest
+#            - name: Build Android test APK
+#              script: |
+#                ./gradlew assembleAndroidTest
             - name: Build Android production release
               script: |
                 ./gradlew assembleRelease    
